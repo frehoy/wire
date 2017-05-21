@@ -1,4 +1,3 @@
-
 # coding: utf-8
 
 import os
@@ -14,18 +13,20 @@ dir_articles = "articles/"
 
 wait = 60.0
 
+finished = []
 
 if not os.path.isdir(dir_articles):
     os.makedirs(dir_articles)
     print("Created directory ", dir_articles)
 
 def save_article(h):
-    url= url_base + h['url']
+    url = url_base + h['url']
     id_a = h['id']
     
     filename = "article_" + id_a + ".json"
     path = dir_articles + filename
-    
+    h['filename'] = filename
+
     art = requests.get(url)
     soup = BeautifulSoup(art.content, "lxml")
     
@@ -36,22 +37,30 @@ def save_article(h):
                 text = text + c.string + "\n"
     
     h['text'] = text
+
     with open(path, 'w') as f:
         json.dump(h, f)
 
-    print("ID:", id_a)
-    print("URL:", url)
-    print("filename:", path)
-    print("TEXT:", h['text'])
+    print_h(h)
+
+def print_h(h):
+
+    print("###################################################################")
+    print("headline:", h['headline'])
+
+    print("ID:", h['id'])
+    print("URL:", h['url'])
+    print("filename:", h['filename'])
+    print("TEXT:")
+    print(h['text'])
 
 def load_article(path):
     with open(path) as f:
         article = json.load(f)
 
-finished = []
+
 t_start = time.time()
 while True:
-    print ("tick")
     r_wire = requests.get(url_wire)
     headlines = r_wire.json()['headlines']
     
