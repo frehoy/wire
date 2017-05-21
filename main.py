@@ -19,6 +19,10 @@ if not os.path.isdir(dir_articles):
     os.makedirs(dir_articles)
     print("Created directory ", dir_articles)
 
+def find_keywords(soup):
+    kw = soup.find("meta", {"name":"keywords"})['content'].split(",")
+    return kw
+
 def save_article(h):
     url = url_base + h['url']
     id_a = h['id']
@@ -37,6 +41,8 @@ def save_article(h):
                 text = text + c.string + "\n"
     
     h['text'] = text
+    
+    h['keywords'] = find_keywords(soup)
 
     with open(path, 'w') as f:
         json.dump(h, f)
@@ -51,6 +57,7 @@ def print_h(h):
     print("ID:", h['id'])
     print("URL:", h['url'])
     print("filename:", h['filename'])
+    print("keywords:", h['keywords'])
     print("TEXT:")
     print(h['text'])
 
