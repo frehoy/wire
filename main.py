@@ -1,3 +1,8 @@
+
+# coding: utf-8
+
+import os
+import json
 import time
 import requests
 from bs4 import BeautifulSoup, NavigableString, Tag
@@ -5,31 +10,50 @@ from bs4 import BeautifulSoup, NavigableString, Tag
 url_base = "http://www.reuters.com"
 url_wire = url_base + "/assets/jsonWireNews"
 
-def print_article(url):
-	art = requests.get(url)
-	soup = BeautifulSoup(art.content, "lxml")
-	
-	for c in soup.find(id="article-text"):
-		if isinstance(c, Tag):
-			if not c.string == None:
-				print(c.string)
+dir_articles = "articles/"
+
+wait = 60.0
+
+
+if not os.path.isdir(dir_articles):
+    os.makedirs(dir_articles)
+    print("Created directory ", dir_articles)
+
+def save_article(h):
+    url= url_base + h['url']
+    id_a = h['id']
+    
+    filename = "article_" + id_a + ".json"
+    path = dir_articles + filename
+    
+    art = requests.get(url)
+    soup = BeautifulSoup(art.content, "lxml")
+    
+    text = ""
+    for c in soup.find(id="article-text"):
+        if isinstance(c, Tag):
+            if not c.string == None:
+                text = text + c.string + "\n"
+    
+    h['text'] = text
+    with open(path, 'w') as f:
+        json.dump(h, f)
+
+def load_article(path):
+    with open(path) as f:
+        article = json.load(f)
 
 finished = []
-finished_headlines = []
-
-starttime=time.time()
+t_start = time.time()
 while True:
-	print ("tick")
-	r_wire = requests.get(url_wire)
-	print(r_wire)
-	headlines = r_wire.json()['headlines']
-	for h in headlines:
-		if h['id'] not in finished:
-			print("#################################################################################")
-			print(h['headline'])
-			url_article = url_base + h['url']
-			print(url_article)
-			print_article(url_article)
-			finished.append(h['id'])
-			finished_headlines.append(h['headline'])
-	time.sleep(60.0 - ((time.time() - starttime) % 60.0))
+    print ("tick")
+    r_wire = requests.get(url_wire)
+    headlines = r_wire.json()['headlines']
+    
+    for h in headlines:
+        if h['id'] not in finished:
+            save_article(h)
+            finished.append(h['id'])
+    time.sleep(wait - ((time.time() - t_start) % wait))
+    
+
