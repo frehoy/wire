@@ -24,11 +24,10 @@ while True:
     print(r_wire)
     headlines = r_wire.json()['headlines']
     for h in headlines:
-        print("#################################################################################")
-        print(h['headline'])
-        #print(h['url'])
-        url_article = url_base + h['url']
         if h['id'] not in finished:
+        	print("#################################################################################")
+        	print(h['headline'])
+        	url_article = url_base + h['url']
             print(url_article)
             print_article(url_article)
             finished.append(h['id'])
