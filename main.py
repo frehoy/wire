@@ -39,7 +39,7 @@ def save_article(h):
     with open(path, 'w') as f:
         json.dump(h, f)
 
-    print("ID:", id_)
+    print("ID:", id_a)
     print("URL:", url)
     print("filename:", path)
     print("TEXT:", h['text'])
