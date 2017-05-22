@@ -27,7 +27,7 @@ def save_article(h):
     url = url_base + h['url']
     id_a = h['id']
     
-    filename = "article_" + id_a + ".json"
+    filename = id_a + ".json"
     path = dir_articles + filename
     h['filename'] = filename
 
