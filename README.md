@@ -1,4 +1,4 @@
-#wire
+# wire
 
 A small python script to get the latest news from [Reuters TheWire](http://www.reuters.com/theWire).
 The script does two things: 
