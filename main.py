@@ -91,6 +91,9 @@ while True:
                 print(h, file=open("errors_other.txt", "a"))
 
 
+    # Make sure the finished list doesn't grow too big
+    while len(finished) > 1000:
+        finished.pop(0)
     time.sleep(wait - ((time.time() - t_start) % wait))
     
 
