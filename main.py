@@ -37,8 +37,8 @@ def save_article(h):
     text = ""
     for c in soup.find(id="article-text"):
         if isinstance(c, Tag):
-            if not c.string == None:
-                text = text + c.string + "\n"
+            if not c.get_text() == None:
+                text = text + c.get_text()
     
     h['text'] = text
     
@@ -73,8 +73,21 @@ while True:
     
     for h in headlines:
         if h['id'] not in finished:
-            save_article(h)
-            finished.append(h['id'])
+            try:
+                save_article(h)
+                finished.append(h['id'])
+            except TypeError:
+                print("Failed parsing headline")
+                print(h)
+                print(h, file=open("errors_TypeError.txt", "a"))
+            except KeyboardInterrupt:
+                print("KeyboardInterrupt")
+                raise
+            except:
+                print("Something unseen wen't wrong")
+                print(h, file=open("errors_other.txt", "a"))
+
+
     time.sleep(wait - ((time.time() - t_start) % wait))
     
 
