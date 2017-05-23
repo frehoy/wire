@@ -37,12 +37,14 @@ def save_article(h):
     text = ""
     for c in soup.find(id="article-text"):
         if isinstance(c, Tag):
-            if not c.get_text() == None:
-                text = text + c.get_text()
+            if not c.string == None:
+                text = text + c.string + "\n"
     
     h['text'] = text
     
     h['keywords'] = find_keywords(soup)
+    ms = int(h['dateMillis'])
+    h['datetime'] = str(datetime.datetime.fromtimestamp(ms/1000.0))
 
     with open(path, 'w') as f:
         json.dump(h, f)
@@ -53,7 +55,7 @@ def print_h(h):
 
     print("###################################################################")
     print("headline:", h['headline'])
-
+    print("datetime: ", h['datetime'])
     print("ID:", h['id'])
     print("URL:", h['url'])
     print("filename:", h['filename'])
