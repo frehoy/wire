@@ -38,8 +38,8 @@ def save_article(h):
     text = ""
     for c in soup.find(id="article-text"):
         if isinstance(c, Tag):
-            if not c.string == None:
-                text = text + c.string + "\n"
+            if not c.get_text() == None:
+                text = text + c.get_text()
     
     h['text'] = text
     
