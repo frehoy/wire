@@ -45,7 +45,7 @@ def save_article(h):
     
     h['keywords'] = find_keywords(soup)
     ms = int(h['dateMillis'])
-    h['datetime'] = str(datetime.datetime.fromtimestamp(ms/1000.0))
+    h['datetime'] = str(datetime.datetime.utcfromtimestamp(ms/1000.0))
 
     with open(path, 'w') as f:
         json.dump(h, f)
