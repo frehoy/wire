@@ -1,99 +1,111 @@
-# coding: utf-8
-
 import datetime
-import os
-import json
+import sys
 import time
+import textwrap
+
 import requests
 from bs4 import BeautifulSoup, NavigableString, Tag
 
-url_base = "http://www.reuters.com"
-url_wire = url_base + "/assets/jsonWireNews"
 
-dir_articles = "articles/"
+TTYPE_DELAY = 0.03
+FETCH_DELAY = 60
 
-wait = 60.0
-
-finished = []
-
-if not os.path.isdir(dir_articles):
-    os.makedirs(dir_articles)
-    print("Created directory ", dir_articles)
-
-def find_keywords(soup):
-    kw = soup.find("meta", {"name":"keywords"})['content'].split(",")
-    return kw
-
-def save_article(h):
-    url = url_base + h['url']
-    id_a = h['id']
-    
-    filename = id_a + ".json"
-    path = dir_articles + filename
-    h['filename'] = filename
-
-    art = requests.get(url)
-    soup = BeautifulSoup(art.content, "lxml")
-    
-    text = ""
-    for c in soup.find(id="article-text"):
-        if isinstance(c, Tag):
-            if not c.get_text() == None:
-                text = text + c.get_text()
-    
-    h['text'] = text
-    
-    h['keywords'] = find_keywords(soup)
-    ms = int(h['dateMillis'])
-    h['datetime'] = str(datetime.datetime.utcfromtimestamp(ms/1000.0))
-
-    with open(path, 'w') as f:
-        json.dump(h, f)
-
-    print_h(h)
-
-def print_h(h):
-
-    print("###################################################################")
-    print("headline:", h['headline'])
-    print("datetime: ", h['datetime'])
-    print("ID:", h['id'])
-    print("URL:", h['url'])
-    print("filename:", h['filename'])
-    print("keywords:", h['keywords'])
-    print("TEXT:")
-    print(h['text'])
-
-def load_article(path):
-    with open(path) as f:
-        article = json.load(f)
+URL_BASE = "http://www.reuters.com"
+URL_WIRE = URL_BASE + "/assets/jsonWireNews"
 
 
-t_start = time.time()
-while True:
-    r_wire = requests.get(url_wire)
-    headlines = r_wire.json()['headlines']
-    
-    for h in headlines:
-        if h['id'] not in finished:
-            try:
-                save_article(h)
-                finished.append(h['id'])
-            except TypeError:
-                print("Failed parsing headline")
-                print(h)
-                print(h, file=open("errors_TypeError.txt", "a"))
-            except KeyboardInterrupt:
-                print("KeyboardInterrupt")
-                raise
-            except:
-                print("Something unseen wen't wrong")
-                print(h, file=open("errors_other.txt", "a"))
+
+def ttype_print(text, delay=TTYPE_DELAY, linewidth=80):
+    lines = textwrap.wrap(text, width=linewidth)
+
+    for line in lines:
+        for character in line:
+            sys.stdout.write(character)
+            sys.stdout.flush()
+            time.sleep(delay)
+        sys.stdout.write("\n")
+
+    sys.stdout.write("\n")
 
 
-    # Make sure the finished list doesn't grow too big
-    while len(finished) > 1000:
-        finished.pop(0)
-    time.sleep(wait - ((time.time() - t_start) % wait))
-    
 
+def get_keywords(soup):
+    kws = soup.find("meta", {"name": "keywords"})['content'].split(",")
+    kws_separated = ", ".join(kws)
+    keywords = f"Keywords: {kws_separated}"
+    return keywords
+
+
+def get_paragraphs(soup):
+    try:
+        article_body = soup.find("div", {"class": "StandardArticleBody_body"})
+        paragraphs = article_body.find_all("p")
+        paragraph_texts = [p.get_text() for p in paragraphs]
+    except:
+        paragraph_texts = ""
+
+    return paragraph_texts
+
+
+def get_datetime(headline):
+    ms = int(headline['dateMillis'])
+    dt = str(datetime.datetime.utcfromtimestamp(ms/1000.0))
+    return dt
+
+
+def get_article(headline):
+    url = URL_BASE + headline['url']
+
+    article_raw = requests.get(url)
+    soup = BeautifulSoup(article_raw.content, "lxml")
+
+    article = {
+        'id': headline['id'],
+        'paragraphs': get_paragraphs(soup),
+        'headline': headline['headline'],
+        'keywords': get_keywords(soup),
+        'datetime': get_datetime(headline),
+        'url': url
+    }
+
+    return article
+
+def get_headlines():
+    wire_raw = requests.get(URL_WIRE)
+    headlines = wire_raw.json()['headlines']
+    return headlines
+
+def print_articles(articles):
+    divider = "#"*80
+    for article in sorted(articles, key=lambda a: a['datetime']):
+        ttype_print(article['datetime'])
+        ttype_print(article['headline'])
+        for paragraph in article['paragraphs']:
+            ttype_print(paragraph)
+        ttype_print(article['keywords'])
+        ttype_print(article['url'])
+        ttype_print(divider)
+
+def main():
+
+    finished_ids = []
+    while True:
+        headlines = get_headlines()
+        articles = []
+        for headline in headlines:
+            if not headline['id'] in finished_ids:
+                article = get_article(headline)
+                finished_ids.append(headline['id'])
+                articles.append(article)
+
+        print_articles(articles)
+
+        time.sleep(FETCH_DELAY)
+
+        # prune finished_ids
+        while len(finished_ids) > 1000:
+            finished_ids.pop(0)
+
+
+if __name__ == "__main__":
+    main()
