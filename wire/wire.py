@@ -11,7 +11,7 @@ import textwrap
 import re
 
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup  # type: ignore
 
 
 TTYPE_DELAY = 0.03
