@@ -1,2 +1,4 @@
+import wire
+
 def test_passing():
-    pass
+    assert wire.wire.TTYPE_DELAY == 0.03

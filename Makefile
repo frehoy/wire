@@ -1,4 +1,4 @@
-.DEFAULT_GOAL := wire
+.DEFAULT_GOAL := env
 
 env : .venv/bin/activate
 
@@ -6,15 +6,14 @@ env : .venv/bin/activate
 	test -d .venv || python3 -m venv .venv
 	.venv/bin/pip install --upgrade pip wheel
 	.venv/bin/pip install -Ur requirements.txt
+	.venv/bin/pip install --editable .
+
 
 env_dev : env .venv/has_dev
 
 .venv/has_dev : requirements_dev.txt
 	.venv/bin/pip install -Ur requirements_dev.txt
 	touch .venv/has_dev # touch this se we don't have to reinstall each time
-
-wire : env
-	.venv/bin/pip install --editable .
 
 dev : black mypy flake8 test
 
@@ -36,4 +35,7 @@ test : env_dev
 clean :
 	rm -rf .venv
 	rm -rf wire.egg-info
+	rm -rf .mypy_cache
+	rm -rf .pytest_cache
+	find . -name "__pycache__" -type d -exec rm -rf {} +
 
