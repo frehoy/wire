@@ -5,14 +5,14 @@ A simple terminal-printing reader for The Wire
 """
 
 import datetime
-import sys
-import time
-import textwrap
 import re
+import sys
+import textwrap
+import time
+from typing import Any, Dict, List
 
 import requests
 from bs4 import BeautifulSoup  # type: ignore
-
 
 TTYPE_DELAY = 0.03
 FETCH_DELAY = 60
@@ -29,8 +29,16 @@ FILTER_EXPRESSIONS = [
 ]
 
 
-def ttype_print(text, delay=TTYPE_DELAY, linewidth=80):
-    lines = textwrap.wrap(text, width=linewidth)
+def ttype_print(text: str, delay: float = TTYPE_DELAY, linewidth: int = 80) -> None:
+    """Print text like a teletyper would
+
+    Args:
+        text: Text to print
+        delay: Delay in seconds between each character
+        linewidth: Width in characters
+
+    """
+    lines: List[str] = textwrap.wrap(text, width=linewidth)
 
     for line in lines:
         for character in line:
@@ -42,19 +50,36 @@ def ttype_print(text, delay=TTYPE_DELAY, linewidth=80):
     sys.stdout.write("\n")
 
 
-def get_keywords(soup):
+def get_keywords(soup) -> str:
+    """Extract keywords from Reuters article
+
+    Args:
+        soup: Beatufilsoup of a Reuters article
+    Returns:
+        keywords: Comma separated keywords
+
+    """
     kws = soup.find("meta", {"name": "keywords"})["content"].split(",")
     kws_separated = ", ".join(kws)
     keywords = f"Keywords: {kws_separated}"
     return keywords
 
 
-def get_paragraphs(soup):
-    def clean_paragraphs(paragraph_texts):
+def get_paragraphs(soup) -> List[str]:
+    """Get a list of paragraphs from an article
+
+    Args:
+        soup: Beautifulsoup of a Reuters Article
+    Returns:
+        paragraphs: A list of paragraph strings.
+
+    """
+
+    def clean_paragraphs(paragraph_texts: List[str]) -> List[str]:
         cleaned_paragraph_texts = []
-        for pt in paragraph_texts:
-            if not any([exp.match(pt) for exp in FILTER_EXPRESSIONS]):
-                cleaned_paragraph_texts.append(pt)
+        for para_text in paragraph_texts:
+            if not any([exp.match(para_text) for exp in FILTER_EXPRESSIONS]):
+                cleaned_paragraph_texts.append(para_text)
 
         return cleaned_paragraph_texts
 
@@ -65,13 +90,13 @@ def get_paragraphs(soup):
     return clean_paragraphs(paragraph_texts)
 
 
-def get_datetime(headline):
-    ms = int(headline["dateMillis"])
-    dt = str(datetime.datetime.utcfromtimestamp(ms / 1000.0))
-    return dt
+def get_datetime(headline: Dict[str, str]) -> str:
+    """ Get the date and time from a headline """
+    return str(datetime.datetime.utcfromtimestamp(int(headline["dateMillis"]) / 1000.0))
 
 
-def get_article(headline):
+def get_article(headline: Dict[str, Any]) -> Dict[str, Any]:
+    """ Download and build an article dict """
     url = URL_BASE + headline["url"]
 
     article_raw = requests.get(url)
@@ -89,13 +114,15 @@ def get_article(headline):
     return article
 
 
-def get_headlines():
+def get_headlines() -> Dict[str, Any]:
+    """ Fetch headlines from API """
     wire_raw = requests.get(URL_WIRE)
     headlines = wire_raw.json()["headlines"]
     return headlines
 
 
 def print_articles(articles):
+    """ Print articles """
     divider = "#" * 80
     for article in sorted(articles, key=lambda a: a["datetime"]):
         ttype_print(article["datetime"])
@@ -108,7 +135,7 @@ def print_articles(articles):
 
 
 def main():
-
+    """ Print articles in teleprinter style """
     finished_ids = []
     while True:
         headlines = get_headlines()

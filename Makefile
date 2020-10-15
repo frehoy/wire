@@ -7,15 +7,16 @@ env : .venv/bin/activate
 	.venv/bin/pip install --upgrade pip wheel
 	.venv/bin/pip install -Ur requirements.txt
 	.venv/bin/pip install --editable .
+	touch .venv/bin/activate
 
 
 env_dev : env .venv/has_dev
 
 .venv/has_dev : requirements_dev.txt
 	.venv/bin/pip install -Ur requirements_dev.txt
-	touch .venv/has_dev # touch this se we don't have to reinstall each time
+	touch .venv/has_dev # I don't understand makefiles send help
 
-dev : black mypy flake8 test
+dev : isort black mypy flake8 test pylint
 
 black : env_dev
 	.venv/bin/black wire
@@ -26,11 +27,19 @@ mypy : env_dev
 	.venv/bin/mypy tests
 
 flake8 : env_dev
-	.venv/bin/flake8 wire
-	.venv/bin/flake8 tests
+	.venv/bin/flake8 --ignore=E501 wire
+	.venv/bin/flake8 --ignore=E501 tests
 
 test : env_dev
 	.venv/bin/pytest tests
+
+isort : env_dev
+	.venv/bin/isort wire
+	.venv/bin/isort tests
+
+pylint : env_dev
+	.venv/bin/pylint wire
+	.venv/bin/pylint tests
 
 clean :
 	rm -rf .venv

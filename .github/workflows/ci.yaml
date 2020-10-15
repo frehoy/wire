@@ -21,18 +21,5 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: setup dev environment
-        run: make env_dev
-
-      - name: black
-        run: make black
-
-      - name: mypy
-        run: make mypy
-
-      - name: flake8
-        run: make flake8
-
-      - name: test
-        run: make test
-
+      - name: ci
+        run: make dev
