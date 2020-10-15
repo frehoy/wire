@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.0.1",
     author="Frederick Hoyles",
     author_email="frederick.hoyles@gmail.com",
-    description="A small example package",
+    description="Teleprinter style reader for Reuters The Wire service",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/frehoy/wire",
@@ -19,4 +19,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.8',
+    entry_points={"console_scripts": ["wire = wire.wire:main"]},
+
 )
