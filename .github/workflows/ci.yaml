@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  # push and PR to all branches
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: setup dev environment
+        run: make env_dev
+
+      - name: black
+        run: make black
+
+      - name: mypy
+        run: make mypy
+
+      - name: flake8
+        run: make flake8
+
+      - name: test
+        run: make test
+
