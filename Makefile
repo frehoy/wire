@@ -1,5 +1,8 @@
 .DEFAULT_GOAL := env
 
+run : env
+	.venv/bin/wire
+
 env : .venv/bin/activate
 
 .venv/bin/activate : requirements.txt
@@ -31,7 +34,8 @@ flake8 : env_dev
 	.venv/bin/flake8 --ignore=E501 tests
 
 test : env_dev
-	.venv/bin/pytest tests
+	.venv/bin/coverage run --source=wire .venv/bin/pytest tests
+	.venv/bin/coverage report
 
 isort : env_dev
 	.venv/bin/isort wire
