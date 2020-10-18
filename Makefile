@@ -19,7 +19,7 @@ env_dev : env .venv/has_dev
 	.venv/bin/pip install -Ur requirements_dev.txt
 	touch .venv/has_dev # I don't understand makefiles send help
 
-dev : isort black mypy flake8 test pylint
+dev : isort black mypy test flake8 pylint
 
 black : env_dev
 	.venv/bin/black wire
